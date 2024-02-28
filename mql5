@@ -1,0 +1,128 @@
+mql5
+//+------------------------------------------------------------------+
+//|                                                   Heracles Pro EA|
+//|                                      https://forexroboteasy.com  |
+//|                                        Developed by Forex Robot Easy Team|
+//+------------------------------------------------------------------+
+
+// Include necessary libraries
+#include <Trade\Trade.mqh>
+#include <Trade\PositionInfo.mqh>
+#include <Trade\SymbolInfo.mqh>
+
+// Define constants
+#define LOT_SIZE 0.01           // Lot size for each trade
+#define STOP_LOSS 50            // Stop loss in pips
+#define TAKE_PROFIT 100         // Take profit in pips
+
+//+------------------------------------------------------------------+
+//| Expert initialization function                                   |
+//+------------------------------------------------------------------+
+int OnInit()
+{
+    // Enable trading
+    Trade.SetExpertMagicNumber(123456);   // Set expert magic number
+    Trade.SetExpertStopLoss(STOP_LOSS);   // Set stop loss
+    Trade.SetExpertTakeProfit(TAKE_PROFIT);   // Set take profit
+
+    return(INIT_SUCCEEDED);
+}
+
+//+------------------------------------------------------------------+
+//| Expert deinitialization function                                 |
+//+------------------------------------------------------------------+
+void OnDeinit(const int reason)
+{
+    // Perform any necessary cleanup before termination
+}
+
+//+------------------------------------------------------------------+
+//| Expert start function                                            |
+//+------------------------------------------------------------------+
+void OnTick()
+{
+    // Check if market is open
+    if (MarketInfo(Symbol(), MODE_TRADEALLOWED))
+    {
+        // Check for available free margin
+        double freeMargin = AccountInfoDouble(ACCOUNT_FREEMARGIN);
+        if (freeMargin >= SymbolInfoDouble(Symbol(), SYMBOL_MARGINREQUIRED) * LOT_SIZE)
+        {
+            // Open a buy trade
+            double askPrice = SymbolInfoDouble(Symbol(), SYMBOL_ASK);
+            double stopLossPrice = askPrice - STOP_LOSS * SymbolInfoDouble(Symbol(), SYMBOL_POINT);
+            double takeProfitPrice = askPrice + TAKE_PROFIT * SymbolInfoDouble(Symbol(), SYMBOL_POINT);
+            Trade.Buy(LOT_SIZE, askPrice, stopLossPrice, takeProfitPrice);
+        }
+    }
+}
+
+//+------------------------------------------------------------------+
+//| Expert tick function                                             |
+//+------------------------------------------------------------------+
+void OnTrade()
+{
+    // Check for open positions
+    CPositionInfo position;
+    for (int i = 0; i < PositionsTotal(); i++)
+    {
+        if (position.GetTicket() > 0)
+        {
+            // Modify stop loss and take profit for open positions
+            double askPrice = SymbolInfoDouble(Symbol(), SYMBOL_ASK);
+            double stopLossPrice = askPrice - STOP_LOSS * SymbolInfoDouble(Symbol(), SYMBOL_POINT);
+            double takeProfitPrice = askPrice + TAKE_PROFIT * SymbolInfoDouble(Symbol(), SYMBOL_POINT);
+            Trade.ModifyPosition(position.GetTicket(), stopLossPrice, takeProfitPrice);
+        }
+    }
+}
+
+//+------------------------------------------------------------------+
+//| Expert tick function                                             |
+//+------------------------------------------------------------------+
+void OnTradeTransaction(const MqlTradeTransaction& transaction)
+{
+    // Check for any trade transactions
+    if (transaction.type == TRADE_TRANSACTION_DEAL_ADD)
+    {
+        // Get trade details
+        const double dealPrice = transaction.price;
+        const double dealVolume = transaction.volume;
+        const double dealProfit = transaction.profit;
+
+        // Perform any necessary operations based on the trade transaction
+        // E.g., send signals, update GUI, etc.
+    }
+}
+
+//+------------------------------------------------------------------+
+//| Expert tick function                                             |
+//+------------------------------------------------------------------+
+void OnTimer()
+{
+    // Perform any necessary operations based on timer events
+}
+
+//+------------------------------------------------------------------+
+//| Expert tick function                                             |
+//+------------------------------------------------------------------+
+void OnChartEvent(const int id, const long& lparam, const double& dparam, const string& sparam)
+{
+    // Perform any necessary operations based on chart events
+}
+
+//+------------------------------------------------------------------+
+//| Expert tick function                                             |
+//+------------------------------------------------------------------+
+void OnBookEvent(const MqlBookEvent& book_event)
+{
+    // Perform any necessary operations based on book events
+}
+
+//+------------------------------------------------------------------+
+//| Expert tick function                                             |
+//+------------------------------------------------------------------+
+void OnCalculate(const int rates_total)
+{
+    // Perform any necessary calculations
+}
